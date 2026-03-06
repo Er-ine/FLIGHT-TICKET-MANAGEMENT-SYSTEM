@@ -35,5 +35,7 @@ It helps travel agents manage flight bookings, passengers, payments, and seat av
 * `queries.sql` – Important SQL queries
 
 ## Author
-
+Aleena Benny
 Erine Anna Binu
+Gayathry S
+Parvathy KK
