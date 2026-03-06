@@ -36,6 +36,9 @@ It helps travel agents manage flight bookings, passengers, payments, and seat av
 
 ## Author
 Aleena Benny
+
 Erine Anna Binu
+
 Gayathry S
+
 Parvathy KK
