@@ -1,221 +1,129 @@
---------------------------------------------------
--- 1. Display all travel agents
---------------------------------------------------
-SELECT * FROM TRAVEL_AGENT;
+-- =====================================
+-- FLIGHT TICKET MANAGEMENT SYSTEM - QUERIES.SQL
+-- =====================================
+-- 1. List all flights with seat info
+SELECT f.flight_number, f.departure_city, f.arrival_city, f.departure_time, f.arrival_time, f.status,
+       s.class_name, s.seats_available, s.price
+FROM flights f
+JOIN seat_classes s ON f.flight_id = s.flight_id;
 
---------------------------------------------------
--- 2. Display all passengers
---------------------------------------------------
-SELECT * FROM PASSENGER;
+-- 2. Search flights by departure and arrival city
+SELECT f.flight_number, f.departure_city, f.arrival_city, f.departure_time, f.arrival_time, f.status
+FROM flights f
+WHERE f.departure_city = 'Kochi' AND f.arrival_city = 'Mumbai';
 
---------------------------------------------------
--- 3. Display all flights
---------------------------------------------------
-SELECT * FROM FLIGHT;
+-- 3. Bookings requiring elder assistance
+SELECT b.booking_id, u.name AS passenger_name, f.flight_number, s.class_name, b.status
+FROM bookings b
+JOIN users u ON b.user_id = u.user_id
+JOIN flights f ON b.flight_id = f.flight_id
+JOIN seat_classes s ON b.seat_class_id = s.seat_class_id
+WHERE b.elder_assistance = TRUE;
 
---------------------------------------------------
--- 4. Display all seats
---------------------------------------------------
-SELECT * FROM SEAT;
+-- 4. All bookings of a user
+SELECT b.booking_id, f.flight_number, f.departure_city, f.arrival_city, s.class_name, b.status, b.elder_assistance
+FROM bookings b
+JOIN flights f ON b.flight_id = f.flight_id
+JOIN seat_classes s ON b.seat_class_id = s.seat_class_id
+WHERE b.user_id = 1
+ORDER BY b.booking_time DESC;
 
---------------------------------------------------
--- 5. Show only international flights
---------------------------------------------------
-SELECT * FROM FLIGHT
-WHERE DESTINATION NOT IN ('Delhi','Mumbai','Chennai','Bangalore','Hyderabad');
+-- 5. All bookings for a specific flight
+SELECT b.booking_id, u.name AS passenger_name, s.class_name, b.status, b.elder_assistance
+FROM bookings b
+JOIN users u ON b.user_id = u.user_id
+JOIN seat_classes s ON b.seat_class_id = s.seat_class_id
+WHERE b.flight_id = 1;
 
---------------------------------------------------
--- 6. Show available seats
---------------------------------------------------
-SELECT * FROM SEAT
-WHERE AVAILABILITY = 1;
+-- 6. Seats booked per class for a flight
+SELECT s.class_name, COUNT(b.booking_id) AS seats_booked
+FROM bookings b
+JOIN seat_classes s ON b.seat_class_id = s.seat_class_id
+WHERE b.flight_id = 1 AND b.status = 'booked'
+GROUP BY s.class_name;
 
---------------------------------------------------
--- 7. Show booked seats
---------------------------------------------------
-SELECT * FROM SEAT
-WHERE AVAILABILITY = 0;
+-- 7. Update elder assistance for a booking
+UPDATE bookings
+SET elder_assistance = TRUE
+WHERE booking_id = 3;
 
---------------------------------------------------
--- 8. Show passengers older than 30
---------------------------------------------------
-SELECT * FROM PASSENGER
-WHERE AGE > 30;
+-- 8. Cancel a booking
+UPDATE bookings
+SET status = 'cancelled'
+WHERE booking_id = 2;
 
---------------------------------------------------
--- 9. Show confirmed bookings
---------------------------------------------------
-SELECT * FROM BOOKINGS
-WHERE STATUS_ = 'CONFIRMED';
+-- 9. Flight status update
+UPDATE flights
+SET status = 'boarding'
+WHERE flight_number = 'AI101';
 
---------------------------------------------------
--- 10. Show cancelled bookings
---------------------------------------------------
-SELECT * FROM BOOKINGS
-WHERE STATUS_ = 'CANCELLED';
+-- 10. Check seats availability for a flight
+SELECT s.class_name, s.seats_available
+FROM seat_classes s
+WHERE s.flight_id = 1;
 
---------------------------------------------------
--- 11. Display flights sorted by departure time
---------------------------------------------------
-SELECT * FROM FLIGHT
-ORDER BY DEPARTURE_TIME;
+-- 12. Payments pending
+SELECT p.payment_id, u.name, b.booking_id, p.amount, p.status
+FROM payments p
+JOIN bookings b ON p.booking_id = b.booking_id
+JOIN users u ON b.user_id = u.user_id
+WHERE p.status = 'pending';
 
---------------------------------------------------
--- 12. Display passengers sorted by age
---------------------------------------------------
-SELECT * FROM PASSENGER
-ORDER BY AGE DESC;
+-- 13. Payments completed
+SELECT p.payment_id, u.name, b.booking_id, p.amount, p.payment_method, p.status
+FROM payments p
+JOIN bookings b ON p.booking_id = b.booking_id
+JOIN users u ON b.user_id = u.user_id
+WHERE p.status = 'completed';
 
---------------------------------------------------
--- 13. Count total passengers
---------------------------------------------------
-SELECT COUNT(*) AS TOTAL_PASSENGERS
-FROM PASSENGER;
+-- 15. Flights that are delayed
+SELECT flight_number, departure_city, arrival_city, departure_time, arrival_time, status
+FROM flights
+WHERE status = 'delayed';
 
---------------------------------------------------
--- 14. Count total flights
---------------------------------------------------
-SELECT COUNT(*) AS TOTAL_FLIGHTS
-FROM FLIGHT;
+-- 16. Flights boarding soon (next 2 hours)
+SELECT flight_number, departure_city, arrival_city, departure_time, status
+FROM flights
+WHERE status = 'boarding' AND departure_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 2 HOUR);
 
---------------------------------------------------
--- 15. Average passenger age
---------------------------------------------------
-SELECT AVG(AGE) AS AVERAGE_AGE
-FROM PASSENGER;
+-- 18. Count of passengers requiring elder assistance per flight
+SELECT f.flight_number, COUNT(b.booking_id) AS elder_passengers
+FROM bookings b
+JOIN flights f ON b.flight_id = f.flight_id
+WHERE b.elder_assistance = TRUE
+GROUP BY f.flight_number;
 
---------------------------------------------------
--- 16. Maximum seat price
---------------------------------------------------
-SELECT MAX(PRICE) AS HIGHEST_PRICE
-FROM SEAT;
+-- 19. Available seats after elder assistance bookings
+SELECT f.flight_number, s.class_name, s.seats_available - COUNT(b.booking_id) AS seats_remaining
+FROM seat_classes s
+JOIN flights f ON s.flight_id = f.flight_id
+LEFT JOIN bookings b ON s.seat_class_id = b.seat_class_id AND b.elder_assistance = TRUE AND b.status = 'booked'
+GROUP BY f.flight_number, s.class_name;
 
---------------------------------------------------
--- 17. Minimum seat price
---------------------------------------------------
-SELECT MIN(PRICE) AS LOWEST_PRICE
-FROM SEAT;
+-- 20. Search flights by date and city
+SELECT f.flight_number, f.departure_city, f.arrival_city, f.departure_time, f.arrival_time, f.status
+FROM flights f
+WHERE DATE(f.departure_time) = '2026-03-15' 
+  AND f.departure_city = 'Kochi' 
+  AND f.arrival_city = 'Mumbai';
 
---------------------------------------------------
--- 18. Total payment amount received
---------------------------------------------------
-SELECT SUM(AMOUNT) AS TOTAL_REVENUE
-FROM PAYMENT;
+-- 21. Update booking status to completed after flight departure
+UPDATE bookings b
+JOIN flights f ON b.flight_id = f.flight_id
+SET b.status = 'completed'
+WHERE f.status = 'departed' AND b.status = 'booked';
 
---------------------------------------------------
--- 19. Show passengers with their bookings (JOIN)
---------------------------------------------------
-SELECT P.NAME, B.BOOKING_ID
-FROM PASSENGER P
-JOIN Booking_Passenger BP
-ON P.PASSENGER_ID = BP.PASSENGER_ID
-JOIN BOOKINGS B
-ON BP.BOOKING_ID = B.BOOKING_ID;
+-- 23. All completed bookings with payment info
+SELECT b.booking_id, u.name, f.flight_number, s.class_name, p.amount, p.status
+FROM bookings b
+JOIN users u ON b.user_id = u.user_id
+JOIN flights f ON b.flight_id = f.flight_id
+JOIN seat_classes s ON b.seat_class_id = s.seat_class_id
+JOIN payments p ON b.booking_id = p.booking_id
+WHERE b.status = 'completed';
 
---------------------------------------------------
--- 20. Show booking details with flight info
---------------------------------------------------
-SELECT B.BOOKING_ID, F.AIRLINE_NAME, F.ORIGIN, F.DESTINATION
-FROM BOOKINGS B
-JOIN FLIGHT F
-ON B.FLIGHT_ID = F.FLIGHT_ID;
-
---------------------------------------------------
--- 21. Show passenger seat allocation
---------------------------------------------------
-SELECT P.NAME, S.SEAT_NUMBER, S.CLASS
-FROM PASSENGER P
-JOIN Booking_Passenger BP
-ON P.PASSENGER_ID = BP.PASSENGER_ID
-JOIN SEAT S
-ON BP.SEAT_ID = S.SEAT_ID;
-
---------------------------------------------------
--- 22. Show meal preference of passengers
---------------------------------------------------
-SELECT P.NAME, BP.MEAL_PREFERENCE
-FROM PASSENGER P
-JOIN Booking_Passenger BP
-ON P.PASSENGER_ID = BP.PASSENGER_ID;
-
---------------------------------------------------
--- 23. Show passengers requiring wheelchair
---------------------------------------------------
-SELECT P.NAME
-FROM PASSENGER P
-JOIN Booking_Passenger BP
-ON P.PASSENGER_ID = BP.PASSENGER_ID
-WHERE BP.WHEELCHAIR_REQUIRED = 'YES';
-
---------------------------------------------------
--- 24. Show booking payment details
---------------------------------------------------
-SELECT B.BOOKING_ID, P.AMOUNT, P.PAYMENT_STATUS
-FROM BOOKINGS B
-JOIN PAYMENT P
-ON B.BOOKING_ID = P.BOOKING_ID;
-
---------------------------------------------------
--- 25. Count passengers per flight
---------------------------------------------------
-SELECT F.FLIGHT_ID, COUNT(BP.PASSENGER_ID) AS TOTAL_PASSENGERS
-FROM FLIGHT F
-JOIN BOOKINGS B
-ON F.FLIGHT_ID = B.FLIGHT_ID
-JOIN Booking_Passenger BP
-ON B.BOOKING_ID = BP.BOOKING_ID
-GROUP BY F.FLIGHT_ID;
-
---------------------------------------------------
--- 26. Show flights having more than 5 passengers
---------------------------------------------------
-SELECT F.FLIGHT_ID, COUNT(BP.PASSENGER_ID) AS PASSENGERS
-FROM FLIGHT F
-JOIN BOOKINGS B ON F.FLIGHT_ID = B.FLIGHT_ID
-JOIN Booking_Passenger BP ON B.BOOKING_ID = BP.BOOKING_ID
-GROUP BY F.FLIGHT_ID
-HAVING COUNT(BP.PASSENGER_ID) > 5;
-
---------------------------------------------------
--- 27. Update booking status to cancelled
---------------------------------------------------
-UPDATE BOOKINGS
-SET STATUS_ = 'CANCELLED'
-WHERE BOOKING_ID = 3;
-
---------------------------------------------------
--- 28. Process refund for cancelled bookings
---------------------------------------------------
-UPDATE PAYMENT
-SET PAYMENT_STATUS = 'REFUNDED'
-WHERE BOOKING_ID IN
-(SELECT BOOKING_ID FROM BOOKINGS WHERE STATUS_='CANCELLED');
-
---------------------------------------------------
--- 29. Delete passenger record
---------------------------------------------------
-DELETE FROM PASSENGER
-WHERE PASSENGER_ID = 15;
-
---------------------------------------------------
--- 30. Show flights with their available seats
---------------------------------------------------
-SELECT F.FLIGHT_ID, F.AIRLINE_NAME, COUNT(S.SEAT_ID) AS AVAILABLE_SEATS
-FROM FLIGHT F
-JOIN SEAT S ON F.FLIGHT_ID = S.FLIGHT_ID
-WHERE S.AVAILABILITY = 1
-GROUP BY F.FLIGHT_ID, F.AIRLINE_NAME;
-
--- Show full booking information (Agent + Passenger + Flight)
-
-SELECT A.NAME AS AGENT,
-P.NAME AS PASSENGER,
-F.AIRLINE_NAME,
-F.ORIGIN,
-F.DESTINATION,
-B.STATUS_
-FROM BOOKINGS B
-JOIN TRAVEL_AGENT A ON B.AGENT_ID = A.AGENT_ID
-JOIN FLIGHT F ON B.FLIGHT_ID = F.FLIGHT_ID
-JOIN Booking_Passenger BP ON B.BOOKING_ID = BP.BOOKING_ID
-JOIN PASSENGER P ON BP.PASSENGER_ID = P.PASSENGER_ID;
+-- 24. Flights with available seats for a class
+SELECT f.flight_number, s.class_name, s.seats_available
+FROM flights f
+JOIN seat_classes s ON f.flight_id = s.flight_id
+WHERE s.class_name = 'Business' AND s.seats_available > 0;
