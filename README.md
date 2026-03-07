@@ -5,11 +5,15 @@
 This project implements a Travel Agency Ticket Management System database.
 It helps travel agents manage flight bookings, passengers, payments, and seat availability.
 
-## Technologies Used
+## Tech stack
 
-* MySQL
-* SQL
-* GitHub
+Backend
+* Node.js — Runtime environment
+* Express.js — Web framework for building APIs
+
+Database
+* MySQL — Relational database
+* mysql2 — Node.js MySQL driver
 
 ## Database Tables
 
