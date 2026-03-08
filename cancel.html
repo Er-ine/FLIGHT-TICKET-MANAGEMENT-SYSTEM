@@ -71,32 +71,43 @@
     </footer>
 
     <script>
-        // --- 1. LOGIN BYPASS FOR TESTING ---
-        // If you want to force access for testing, uncomment the next line:
-        // localStorage.setItem('isLoggedIn', 'true');
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        alert("🔒 Access Denied. Redirecting to Home...");
+        window.location.href = "index.html";
+    }
 
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            alert("🔒 Access Denied. Redirecting to Home...");
-            window.location.href = "index.html"; 
-        }
+    const cancelForm = document.getElementById('cancelForm');
+    cancelForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const booking_id = document.getElementById('pnrInput').value;
 
-        // --- 2. FORM HANDLING ---
-        const cancelForm = document.getElementById('cancelForm');
-        cancelForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const pnr = document.getElementById('pnrInput').value;
-            
-            if(confirm("Are you sure you want to cancel " + pnr + "?")) {
-                document.getElementById('mainCard').innerHTML = `
-                    <div class="py-5">
-                        <div style="font-size: 60px;">✅</div>
-                        <h3 class="fw-bold mt-3" style="color:var(--primary-navy)">Cancellation Requested</h3>
-                        <p class="text-muted">Refund for ${pnr} is being processed to your original payment method.</p>
-                        <a href="index.html" class="btn btn-dark mt-3 px-4">Back to Dashboard</a>
-                    </div>
-                `;
+        if (confirm("Are you sure you want to cancel booking " + booking_id + "?")) {
+            try {
+                const res = await fetch('http://localhost:3000/api/cancel-booking', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: parseInt(booking_id) })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('mainCard').innerHTML = `
+                        <div class="py-5">
+                            <div style="font-size: 60px;">✅</div>
+                            <h3 class="fw-bold mt-3" style="color:var(--primary-navy)">Cancellation Successful</h3>
+                            <p class="text-muted">Refund for booking ${booking_id} is being processed.</p>
+                            <a href="index.html" class="btn btn-dark mt-3 px-4">Back to Dashboard</a>
+                        </div>
+                    `;
+                } else {
+                    alert('Cancellation failed: ' + data.message);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
             }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>

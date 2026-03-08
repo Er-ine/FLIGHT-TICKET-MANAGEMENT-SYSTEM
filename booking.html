@@ -110,29 +110,58 @@
     </div>
 
     <script>
-        if (localStorage.getItem('isLoggedIn') !== 'true') { window.location.href = "login.html"; }
+        
+    if (localStorage.getItem('isLoggedIn') !== 'true') { window.location.href = "index.html"; }
 
-        function calculatePrice() {
-            const selectElement = document.getElementById('cabinClass');
-            const price = selectElement.options[selectElement.selectedIndex].getAttribute('data-amt');
-            document.getElementById('livePrice').innerText = "₹ " + Number(price).toLocaleString();
-            localStorage.setItem('bookingTotal', price);
+    const urlParams = new URLSearchParams(window.location.search);
+    const flightId = urlParams.get('flight_id') || 201;
+
+    function calculatePrice() {
+        const selectElement = document.getElementById('cabinClass');
+        const price = selectElement.options[selectElement.selectedIndex].getAttribute('data-amt');
+        document.getElementById('livePrice').innerText = "₹ " + Number(price).toLocaleString();
+        localStorage.setItem('bookingTotal', price);
+    }
+
+    document.getElementById('mainBookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const bookingData = {
+            agent_id: 1,
+            flight_id: parseInt(flightId),
+            booking_date: new Date().toISOString().split('T')[0],
+            passenger_id: 101,
+            seat_id: 3,
+            meal_preference: document.getElementById('mealPref').value,
+            wheelchair_required: document.getElementById('ssrWheelchair').checked ? 'YES' : 'NO',
+            special_assistance: null,
+            infant_bassinet_required: document.getElementById('ssrInfant').checked ? 'YES' : 'NO'
+        };
+
+        try {
+            const res = await fetch('http://localhost:3000/api/booking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bookingData)
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem('booking_id', data.booking_id);
+                alert('Booking successful! Booking ID: ' + data.booking_id);
+                window.location.href = "payment.html";
+            } else {
+                alert('Booking failed: ' + data.message);
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
         }
+    });
 
-        document.getElementById('mainBookingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const bookingData = {
-                name: document.getElementById('pName').value,
-                id: document.getElementById('pID').value,
-                seat: document.getElementById('seatID').value,
-                meal: document.getElementById('mealPref').value
-            };
-            console.log("Saving Meal Pref to DB:", bookingData.meal);
-            window.location.href = "payment.html";
-        });
+    function logout() { localStorage.removeItem('isLoggedIn'); window.location.href = "index.html"; }
+    window.onload = calculatePrice;
 
-        function logout() { localStorage.removeItem('isLoggedIn'); window.location.href = "login.html"; }
-        window.onload = calculatePrice;
     </script>
 </body>
 </html>

@@ -121,22 +121,43 @@
     </div>
 
     <script>
-        function handleTransaction() {
-            const name = document.getElementById('paxName').value;
-            if(!name) return alert("Please enter Passenger Name");
-            
-            // Random PNR Generation
-            const pnr = "TRV" + Math.floor(100000 + Math.random() * 900000);
-            
-            // Update Receipt
-            document.getElementById('recName').innerText = name.toUpperCase();
-            document.getElementById('recPNR').innerText = pnr;
-            
-            // Toggle view
-            document.getElementById('paymentSection').style.display = 'none';
-            document.getElementById('receiptSection').style.display = 'block';
-            window.scrollTo(0,0);
+    async function handleTransaction() {
+        const name = document.getElementById('paxName').value;
+        if (!name) return alert("Please enter Passenger Name");
+
+        const booking_id = localStorage.getItem('booking_id');
+        if (!booking_id) return alert("No booking found! Please book a flight first.");
+
+        const paymentData = {
+            booking_id: parseInt(booking_id),
+            amount: 5310,
+            payment_method: 'CARD',
+            payment_date: new Date().toISOString().split('T')[0]
+        };
+
+        try {
+            const res = await fetch('http://localhost:3000/api/payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paymentData)
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                const pnr = "TRV" + Math.floor(100000 + Math.random() * 900000);
+                document.getElementById('recName').innerText = name.toUpperCase();
+                document.getElementById('recPNR').innerText = pnr;
+                document.getElementById('paymentSection').style.display = 'none';
+                document.getElementById('receiptSection').style.display = 'block';
+                window.scrollTo(0, 0);
+            } else {
+                alert('Payment failed: ' + data.message);
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
         }
-    </script>
+    }
+</script>
 </body>
 </html>

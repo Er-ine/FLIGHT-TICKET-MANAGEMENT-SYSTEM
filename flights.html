@@ -63,56 +63,64 @@
     </footer>
 
     <script>
-        const allFlights = [
-            { id: 'FL001', name: 'IndiGo', route: 'Mumbai ➔ Delhi', type: 'india', price: 4500, seats: 12, dep: '10:30 AM', arr: '12:45 PM' },
-            { id: 'FL002', name: 'Air India', route: 'Kochi ➔ Bangalore', type: 'india', price: 3200, seats: 8, dep: '02:15 PM', arr: '04:00 PM' },
-            { id: 'FL003', name: 'Emirates', route: 'Delhi ➔ Dubai', type: 'abroad', price: 35000, seats: 5, dep: '04:00 AM', arr: '07:30 AM' },
-            { id: 'FL004', name: 'Singapore Air', route: 'Chennai ➔ Singapore', type: 'abroad', price: 28000, seats: 3, dep: '11:20 PM', arr: '06:10 AM' },
-            { id: 'FL005', name: 'Vistara', route: 'Delhi ➔ Goa', type: 'india', price: 6000, seats: 10, dep: '01:00 PM', arr: '03:30 PM' }
-        ];
+        
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        alert("🔒 Access Denied. Please login first.");
+        window.location.href = "index.html";
+    }
 
-        function filterByDate() {
-            const date = document.getElementById('travelDate').value;
-            const type = document.getElementById('typeFilter').value;
-            const container = document.getElementById('flightResults');
-            let filtered = allFlights.filter(f => type === 'all' || f.type === type);
+    async function filterByDate() {
+        const date = document.getElementById('travelDate').value;
+        const type = document.getElementById('typeFilter').value;
+        const container = document.getElementById('flightResults');
+
+        container.innerHTML = `<p class="text-muted">Loading flights...</p>`;
+
+        try {
+            const res = await fetch('http://localhost:3000/api/flights');
+            const data = await res.json();
+
+            let flights = data.data;
+
+            const indiaDestinations = ['Delhi','Mumbai','Chennai','Bangalore','Hyderabad','Kochi'];
+            if (type === 'india') {
+                flights = flights.filter(f => indiaDestinations.includes(f.DESTINATION));
+            } else if (type === 'abroad') {
+                flights = flights.filter(f => !indiaDestinations.includes(f.DESTINATION));
+            }
 
             container.innerHTML = `<h5 class="fw-bold mb-4">Available Flights for: ${date ? date : 'Today'}</h5>`;
-            
-            filtered.forEach(f => {
+
+            if (flights.length === 0) {
+                container.innerHTML += `<p class="text-muted">No flights found.</p>`;
+                return;
+            }
+
+            flights.forEach(f => {
                 container.innerHTML += `
                     <div class="flight-card shadow-sm">
                         <div>
-                            <small class="text-muted fw-bold">ID: ${f.id}</small>
-                            <h5 class="fw-bold mb-0">${f.name}</h5>
-                            <small class="text-primary fw-bold">${f.type.toUpperCase()}</small>
+                            <small class="text-muted fw-bold">ID: ${f.FLIGHT_ID}</small>
+                            <h5 class="fw-bold mb-0">${f.AIRLINE_NAME}</h5>
                         </div>
                         <div class="text-center">
-                            <div class="fw-bold h6 mb-1">${f.route}</div>
-                            <div class="small text-muted">🕒 Dep: ${f.dep} | Arr: ${f.arr}</div>
+                            <div class="fw-bold h6 mb-1">${f.ORIGIN} ➔ ${f.DESTINATION}</div>
+                            <div class="small text-muted">🕒 Dep: ${new Date(f.DEPARTURE_TIME).toLocaleString()} | Arr: ${new Date(f.ARRIVAL_TIME).toLocaleString()}</div>
                         </div>
                         <div class="text-center">
-                            <div class="h5 fw-bold mb-0">₹${f.price.toLocaleString()}</div>
-                            <small class="text-success fw-bold">${f.seats} Seats Left</small>
+                            <div class="h5 fw-bold mb-0">${f.AVAILABLE_SEATS} seats left</div>
                         </div>
-                        <a href="booking.html" class="btn btn-dark fw-bold px-4" style="border-radius:10px;">Select</a>
+                        <a href="booking.html?flight_id=${f.FLIGHT_ID}" class="btn btn-dark fw-bold px-4" style="border-radius:10px;">Select</a>
                     </div>
                 `;
             });
+        } catch (err) {
+            container.innerHTML = `<p class="text-danger">Error loading flights: ${err.message}</p>`;
         }
+    }
 
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            alert("🔒 Access Denied. Please login first.");
-            window.location.href = "login.html";
-        }
+    window.onload = filterByDate;
 
-        function logout() {
-            if(confirm("Are you sure?")) {
-                localStorage.removeItem('isLoggedIn');
-                window.location.href = "login.html";
-            }
-        }
-        window.onload = filterByDate;
     </script>
 </body>
 </html>
