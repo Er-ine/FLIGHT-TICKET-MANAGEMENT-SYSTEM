@@ -1,7 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+router.post('/passenger', async (req, res) => {
+    const { name, age, gender, passport_number } = req.body;
+    try {
+        const [result] = await db.query(
+            `INSERT INTO PASSENGER (NAME, AGE, GENDER, PASSPORT_NUMBER) VALUES (?, ?, ?, ?)`,
+            [name, age, gender, passport_number]
+        );
+        res.json({ success: true, passenger_id: result.insertId });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
 
+router.post('/seat', async (req, res) => {
+    const { flight_id, class: cls, price } = req.body;
+    try {
+        const seatNum = Math.floor(Math.random() * 30) + 1 + ['A','B','C'][Math.floor(Math.random()*3)];
+        const [result] = await db.query(
+            `INSERT INTO SEAT (FLIGHT_ID, SEAT_NUMBER, CLASS, AVAILABILITY, PRICE) VALUES (?, ?, ?, 1, ?)`,
+            [flight_id, seatNum, cls, price]
+        );
+        res.json({ success: true, seat_id: result.insertId });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
 router.post('/booking', async (req, res) => {
   const { agent_id, flight_id, booking_date, passenger_id, seat_id, meal_preference, wheelchair_required, special_assistance, infant_bassinet_required } = req.body;
 
