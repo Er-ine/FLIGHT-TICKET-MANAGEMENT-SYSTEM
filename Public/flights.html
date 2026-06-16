@@ -114,7 +114,7 @@
 
         try {
             const today = date || new Date().toISOString().split('T')[0];
-            const liveRes = await fetch('http://localhost:3000/api/live-flights?date=' + today);
+            const liveRes = await fetch('/api/live-flights?date=' + today);
             const liveData = await liveRes.json();
             let airports = liveData.flights || [];
 

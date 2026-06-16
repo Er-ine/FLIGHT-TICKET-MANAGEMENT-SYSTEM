@@ -170,7 +170,7 @@ document.getElementById('mainBookingForm').addEventListener('submit', async func
 
     try {
         // Step 1: Create passenger
-        const pRes = await fetch('http://localhost:3000/api/passenger', {
+        const pRes = await fetch('/api/passenger', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, age, gender, passport_number: passport })
@@ -180,7 +180,7 @@ document.getElementById('mainBookingForm').addEventListener('submit', async func
         if (!pData.success) { alert('Passenger error: ' + pData.message); return; }
 
         // Step 2: Create seat
-        const sRes = await fetch('http://localhost:3000/api/seat', {
+        const sRes = await fetch('/api/seat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ flight_id: 1, class: cabin, price: total })
@@ -190,7 +190,7 @@ document.getElementById('mainBookingForm').addEventListener('submit', async func
         if (!sData.success) { alert('Seat error: ' + sData.message); return; }
 
         // Step 3: Create booking
-        const bRes = await fetch('http://localhost:3000/api/booking', {
+        const bRes = await fetch('/api/booking', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

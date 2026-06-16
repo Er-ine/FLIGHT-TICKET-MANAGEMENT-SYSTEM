@@ -83,7 +83,7 @@
 
         if (confirm("Are you sure you want to cancel booking " + booking_id + "?")) {
             try {
-                const res = await fetch('http://localhost:3000/api/cancel-booking', {
+                const res = await fetch('/api/cancel-booking', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ booking_id: parseInt(booking_id) })
