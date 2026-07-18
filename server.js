@@ -1,7 +1,8 @@
+require('dotenv').config();
+const db = require('./db');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
 
 const app = express();
 app.use(express.static('public'));
@@ -14,6 +15,12 @@ const flightRoutes = require('./routes/flights');
 const bookingRoutes = require('./routes/booking');
 const paymentRoutes = require('./routes/payment');
 const liveFlightRoutes = require('./routes/liveflights');
+
+// ADD THESE 4 LINES HERE, AFTER the requires:
+console.log('flightRoutes:', typeof flightRoutes);
+console.log('bookingRoutes:', typeof bookingRoutes);
+console.log('paymentRoutes:', typeof paymentRoutes);
+console.log('liveFlightRoutes:', typeof liveFlightRoutes);
 // Use routes
 app.use('/api', flightRoutes);
 app.use('/api', bookingRoutes);
@@ -25,6 +32,58 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+// TOTAL BOOKINGS
+app.get('/api/dashboard/bookings', (req, res) => {
+    const sql = `
+        SELECT COUNT(*) AS totalBookings
+        FROM BOOKINGS
+    `;
+
+    db.query(sql, (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result[0]);
+    });
+});
+
+// TOTAL REVENUE
+app.get('/api/dashboard/revenue', (req, res) => {
+    const sql = `
+        SELECT IFNULL(SUM(AMOUNT),0) AS totalRevenue
+        FROM PAYMENT
+        WHERE PAYMENT_STATUS='Completed'
+    `;
+
+    db.query(sql, (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result[0]);
+    });
+});
+
+// TOTAL PASSENGERS
+app.get('/api/dashboard/passengers', (req, res) => {
+    const sql = `
+        SELECT COUNT(*) AS totalPassengers
+        FROM PASSENGER
+    `;
+
+    db.query(sql, (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result[0]);
+    });
+});
+
+// TOTAL FLIGHTS
+app.get('/api/dashboard/flights', (req, res) => {
+    const sql = `
+        SELECT COUNT(*) AS totalFlights
+        FROM FLIGHT
+    `;
+
+    db.query(sql, (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result[0]);
+    });
+});
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
