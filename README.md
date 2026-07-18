@@ -1,9 +1,8 @@
-# Flight Ticket Management System (DBMS Project)
+# NAVIERO — Flight Ticket Management System (DBMS Project)
 
 ## Project Overview
 
-This project implements a Travel Agency Ticket Management System database.
-It helps travel agents manage flight bookings, passengers, payments, and seat availability.
+NAVIERO is a flight booking platform that pulls **real-time live flight data** — actual departures, arrivals, statuses, and aircraft info — instead of static dummy listings. Users can search live flights, pick a cabin class and seat, and complete a booking with payment, all backed by a MySQL database.
 
 ## Tech stack
 
@@ -26,11 +25,15 @@ Database
 7. Payment
 
 ## Features
-
-* Flight booking and cancellation
-* Seat availability tracking
-* Passenger service requests
-* Payment and refund management
+- Sign up / login
+- Live flight search by origin and destination
+- Domestic flights skip the First Class option
+- Cabin class and seat selection
+- Passenger details with meal, wheelchair, and medical preferences
+- Payment with a printable e-ticket receipt
+- Flight booking and cancellation
+- Seat availability tracking
+- Payment and refund management
 
 ## Files
 
