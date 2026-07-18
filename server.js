@@ -5,10 +5,9 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(express.static('public'));
+app.use(express.static('Public'));
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
 // Import routes
 const flightRoutes = require('./routes/flights');
@@ -16,11 +15,6 @@ const bookingRoutes = require('./routes/booking');
 const paymentRoutes = require('./routes/payment');
 const liveFlightRoutes = require('./routes/liveflights');
 
-// ADD THESE 4 LINES HERE, AFTER the requires:
-console.log('flightRoutes:', typeof flightRoutes);
-console.log('bookingRoutes:', typeof bookingRoutes);
-console.log('paymentRoutes:', typeof paymentRoutes);
-console.log('liveFlightRoutes:', typeof liveFlightRoutes);
 // Use routes
 app.use('/api', flightRoutes);
 app.use('/api', bookingRoutes);
@@ -28,10 +22,11 @@ app.use('/api', paymentRoutes);
 app.use('/api', liveFlightRoutes);
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'Public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
+
 // TOTAL BOOKINGS
 app.get('/api/dashboard/bookings', (req, res) => {
     const sql = `
@@ -84,6 +79,7 @@ app.get('/api/dashboard/flights', (req, res) => {
         res.json(result[0]);
     });
 });
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
