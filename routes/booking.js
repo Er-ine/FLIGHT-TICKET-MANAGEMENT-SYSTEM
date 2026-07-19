@@ -8,7 +8,7 @@ router.post('/passenger', async (req, res) => {
         const [maxRow] = await db.query(`SELECT MAX(PASSENGER_ID) AS maxId FROM PASSENGER`);
         const nextId = (maxRow[0].maxId || 0) + 1;
 
-        const [result] = await db.query(
+        await db.query(
             `INSERT INTO PASSENGER (PASSENGER_ID, NAME, AGE, GENDER, PASSPORT_NUMBER) VALUES (?, ?, ?, ?, ?)`,
             [nextId, name, age, gender, passport_number]
         );
@@ -22,12 +22,15 @@ router.post('/passenger', async (req, res) => {
 router.post('/seat', async (req, res) => {
     const { flight_id, class: cls, price } = req.body;
     try {
+        const [maxRow] = await db.query(`SELECT MAX(SEAT_ID) AS maxId FROM SEAT`);
+        const nextId = (maxRow[0].maxId || 0) + 1;
+
         const seatNum = Math.floor(Math.random() * 30) + 1 + ['A','B','C'][Math.floor(Math.random()*3)];
-        const [result] = await db.query(
-            `INSERT INTO SEAT (FLIGHT_ID, SEAT_NUMBER, CLASS, AVAILABILITY, PRICE) VALUES (?, ?, ?, 1, ?)`,
-            [flight_id, seatNum, cls, price]
+        await db.query(
+            `INSERT INTO SEAT (SEAT_ID, FLIGHT_ID, SEAT_NUMBER, CLASS, AVAILABILITY, PRICE) VALUES (?, ?, ?, ?, 1, ?)`,
+            [nextId, flight_id, seatNum, cls, price]
         );
-        res.json({ success: true, seat_id: result.insertId });
+        res.json({ success: true, seat_id: nextId });
     } catch (err) {
         console.error('SEAT INSERT ERROR:', err);
         res.status(500).json({ success: false, message: err.message, code: err.code });
