@@ -5,11 +5,14 @@ const db = require('../db');
 router.post('/passenger', async (req, res) => {
     const { name, age, gender, passport_number } = req.body;
     try {
+        const [maxRow] = await db.query(`SELECT MAX(PASSENGER_ID) AS maxId FROM PASSENGER`);
+        const nextId = (maxRow[0].maxId || 0) + 1;
+
         const [result] = await db.query(
-            `INSERT INTO PASSENGER (NAME, AGE, GENDER, PASSPORT_NUMBER) VALUES (?, ?, ?, ?)`,
-            [name, age, gender, passport_number]
+            `INSERT INTO PASSENGER (PASSENGER_ID, NAME, AGE, GENDER, PASSPORT_NUMBER) VALUES (?, ?, ?, ?, ?)`,
+            [nextId, name, age, gender, passport_number]
         );
-        res.json({ success: true, passenger_id: result.insertId });
+        res.json({ success: true, passenger_id: nextId });
     } catch (err) {
         console.error('PASSENGER INSERT ERROR:', err);
         res.status(500).json({ success: false, message: err.message, code: err.code });
