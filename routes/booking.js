@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+
 router.post('/passenger', async (req, res) => {
     const { name, age, gender, passport_number } = req.body;
     try {
@@ -10,7 +11,8 @@ router.post('/passenger', async (req, res) => {
         );
         res.json({ success: true, passenger_id: result.insertId });
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+        console.error('PASSENGER INSERT ERROR:', err);
+        res.status(500).json({ success: false, message: err.message, code: err.code });
     }
 });
 
@@ -24,9 +26,11 @@ router.post('/seat', async (req, res) => {
         );
         res.json({ success: true, seat_id: result.insertId });
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+        console.error('SEAT INSERT ERROR:', err);
+        res.status(500).json({ success: false, message: err.message, code: err.code });
     }
 });
+
 router.post('/booking', async (req, res) => {
   const { agent_id, flight_id, booking_date, passenger_id, seat_id, meal_preference, wheelchair_required, special_assistance, infant_bassinet_required } = req.body;
 
@@ -60,7 +64,8 @@ router.post('/booking', async (req, res) => {
 
     res.json({ success: true, booking_id: booking.insertId, message: 'Booking successful' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('BOOKING INSERT ERROR:', err);
+    res.status(500).json({ success: false, message: err.message, code: err.code });
   }
 });
 
@@ -100,7 +105,8 @@ router.put('/cancel-booking', async (req, res) => {
 
     res.json({ success: true, message: 'Booking cancelled and payment refunded' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('CANCEL BOOKING ERROR:', err);
+    res.status(500).json({ success: false, message: err.message, code: err.code });
   }
 });
 
@@ -132,7 +138,8 @@ router.get('/booking-details/:booking_id', async (req, res) => {
 
     res.json({ success: true, data: result });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('BOOKING DETAILS ERROR:', err);
+    res.status(500).json({ success: false, message: err.message, code: err.code });
   }
 });
 
