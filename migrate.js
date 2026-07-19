@@ -36,6 +36,14 @@ async function migrate() {
     }
     console.log('Schema step done.');
 
+    console.log('Fixing PASSENGER_ID to auto-increment...');
+    try {
+        await connection.query('ALTER TABLE PASSENGER MODIFY PASSENGER_ID INT AUTO_INCREMENT');
+        console.log('PASSENGER_ID is now auto-increment');
+    } catch (err) {
+        console.log('Alter skipped or failed:', err.message);
+    }
+
     console.log('Loading sample data...');
     const rawData = fs.readFileSync('./sample_data.sql', 'utf8');
 
