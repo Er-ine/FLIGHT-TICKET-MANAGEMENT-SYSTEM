@@ -79,6 +79,14 @@ app.get('/api/dashboard/flights', (req, res) => {
         res.json(result[0]);
     });
 });
+app.get('/api/debugdb', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT COUNT(*) AS count FROM PASSENGER');
+        res.json({ success: true, rows });
+    } catch (err) {
+        res.json({ success: false, message: err.message, code: err.code, stack: err.stack });
+    }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
