@@ -68,5 +68,3 @@ CREATE TABLE PAYMENT(
   PAYMENT_STATUS VARCHAR(20),
   FOREIGN KEY (BOOKING_ID) REFERENCES BOOKINGS(BOOKING_ID)
 );
-const liveFlightRoutes = require('./routes/liveflights');
-app.use('/api', liveFlightRoutes);

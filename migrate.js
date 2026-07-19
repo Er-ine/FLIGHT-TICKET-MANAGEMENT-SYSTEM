@@ -13,19 +13,52 @@ async function migrate() {
         multipleStatements: true
     });
 
-    console.log('Connected.');
+    console.log('Connected. Running schema...');
+    const schema = fs.readFileSync('./schema.sql', 'utf8');
+    const cleanSchema = schema
+        .split('\n')
+        .filter(line => !line.trim().toUpperCase().startsWith('CREATE DATABASE') && !line.trim().toUpperCase().startsWith('USE '))
+        .join('\n');
 
-    const [rows] = await connection.query('SELECT COUNT(*) AS count FROM PASSENGER');
-    console.log('Current passenger count:', rows[0].count);
+    const statements = cleanSchema.split(';').map(s => s.trim()).filter(s => s.length > 0);
 
-    if (rows[0].count === 0) {
-        console.log('No data found. Loading sample data...');
-        const data = fs.readFileSync('./sample_data.sql', 'utf8');
-        await connection.query(data);
-        console.log('Sample data loaded successfully!');
-    } else {
-        console.log('Data already exists, skipping insert.');
+    for (const stmt of statements) {
+        try {
+            await connection.query(stmt);
+            console.log('OK:', stmt.split('\n')[0]);
+        } catch (err) {
+            if (err.code === 'ER_TABLE_EXISTS_ERROR') {
+                console.log('Skipped (already exists):', stmt.split('\n')[0]);
+            } else {
+                throw err;
+            }
+        }
     }
+    console.log('Schema step done.');
+
+    console.log('Loading sample data...');
+    const rawData = fs.readFileSync('./sample_data.sql', 'utf8');
+
+    const cleanData = rawData
+        .split('\n')
+        .filter(line => !line.trim().startsWith('--'))
+        .join('\n');
+
+    const dataStatements = cleanData.split(';').map(s => s.trim()).filter(s => s.length > 0);
+
+    for (const stmt of dataStatements) {
+        try {
+            await connection.query(stmt);
+            console.log('Inserted:', stmt.split('\n')[0].substring(0, 50));
+        } catch (err) {
+            if (err.code === 'ER_DUP_ENTRY') {
+                console.log('Skipped (duplicate):', stmt.split('\n')[0].substring(0, 50));
+            } else {
+                throw err;
+            }
+        }
+    }
+    console.log('Sample data step done.');
 
     await connection.end();
 }
